@@ -1,0 +1,35 @@
+# Research RAG System Dependencies
+# =================================
+
+# Core LangChain/LangGraph
+langgraph>=0.2.0
+langchain>=0.3.0
+langchain-community>=0.3.0
+langchain-openai>=0.2.0
+
+# Vector Store
+chromadb>=0.4.22
+
+# Embeddings (GPU-accelerated)
+sentence-transformers>=2.3.0
+torch>=2.0.0
+
+# PDF Processing
+pymupdf>=1.24.0  # Also known as fitz
+
+# Reranking
+# Note: sentence-transformers includes CrossEncoder
+
+# UI
+chainlit>=1.0.0
+
+# Configuration
+python-dotenv>=1.0.0
+pyyaml>=6.0
+
+# Utilities
+numpy>=1.24.0
+pydantic>=2.0.0
+
+# OpenAI SDK (for Jan compatibility)
+openai>=1.0.0
