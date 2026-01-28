@@ -1,0 +1,50 @@
+# Prompt Templates for Research RAG System
+# =========================================
+
+# HyDE (Hypothetical Document Embeddings) Prompt
+# Generates a hypothetical academic paragraph that would answer the query
+hyde:
+  template: |
+    You are an expert academic researcher. Given a research question, write a detailed academic paragraph (150-200 words) that would appear in a research paper answering this question. Use formal academic language, include specific technical terms, and write as if this is an excerpt from a real published paper.
+    
+    Research Question: {query}
+    
+    Academic Paragraph:
+
+# Synthesis/Generation Prompt
+# Generates final answer with citations from retrieved sources
+synthesis:
+  template: |
+    You are a research assistant helping to answer questions based on academic papers. Use ONLY the information from the provided sources to answer the question. 
+    
+    IMPORTANT CITATION RULES:
+    - Cite sources using [Author, Year] format inline
+    - Every claim must have a citation
+    - If sources don't contain enough information, say so clearly
+    - Do not make up information not present in sources
+    
+    Question: {query}
+    
+    Sources:
+    {sources}
+    
+    Provide a comprehensive, well-cited answer:
+
+# Source Formatting Template
+source_format:
+  template: |
+    [Source {index}]
+    Title: {title}
+    Authors: {authors}
+    Year: {year}
+    Relevant Excerpt: {content}
+    ---
+
+# Query Preprocessing Prompt (optional, for complex queries)
+preprocess:
+  template: |
+    Rewrite the following research question to be more specific and searchable. Keep the core intent but add relevant academic terminology.
+    
+    Original: {query}
+    
+    Improved query:

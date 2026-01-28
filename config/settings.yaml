@@ -1,0 +1,58 @@
+# Research RAG System Configuration
+# ===================================
+
+# Jan LLM Server Configuration
+jan:
+  base_url: "http://10.201.20.44:1234/v1"
+  api_key: "not-needed"  # Override in .env if Jan requires API key
+  model: "openai/gpt-oss-20b"  # Must match Jan's loaded model name
+  temperature: 0.7
+  max_tokens: 2048
+  timeout: 120  # seconds
+
+# Embedding Model Configuration
+embeddings:
+  model_name: "nomic-ai/nomic-embed-text-v1.5"
+  device: "cuda"  # Use "cpu" if GPU issues
+  batch_size: 32
+
+# Chroma Vector Store Configuration
+chroma:
+  persist_directory: "data/chroma_db"
+  collection_name: "research_papers"
+
+# PDF Processing Configuration
+pdf:
+  folder_path: "data/pdfs"  # Override in .env
+  scan_depth: 2  # Subfolders to scan (2 for Zotero storage structure)
+  supported_extensions: [".pdf"]
+
+# Chunking Configuration
+chunking:
+  chunk_size: 800
+  chunk_overlap: 140
+  separators:
+    - "\n\n"
+    - "\n"
+    - ". "
+    - " "
+
+# Retrieval Configuration (MMR)
+retrieval:
+  k: 10  # Final number of documents to return
+  fetch_k: 20  # Initial pool for MMR diversity
+  lambda_mult: 0.7  # 0=max diversity, 1=max relevance
+
+# Reranker Configuration
+reranker:
+  model_name: "cross-encoder/ms-marco-MiniLM-L-6-v2"
+  top_k: 5  # Return top 5 after reranking
+
+# Chainlit UI Configuration
+ui:
+  title: "Research RAG Assistant"
+  description: "Query your research paper library with AI-powered retrieval"
+
+# Metadata Storage
+metadata:
+  checksums_file: "data/metadata/checksums.json"
