@@ -1,5 +1,5 @@
 """
-Jan LLM Client - OpenAI-compatible client for local Jan server.
+LM Studio Client - OpenAI-compatible client for remote LM Studio server.
 Handles connection, health checks, and error recovery.
 """
 import time
@@ -11,9 +11,9 @@ from openai import APIConnectionError, APITimeoutError
 from src.config import settings
 
 
-class JanClient:
+class LMStudioClient:
     """
-    Client for Jan local LLM server.
+    Client for remote LM Studio server.
     Uses OpenAI SDK with custom base URL.
     """
     
@@ -25,15 +25,15 @@ class JanClient:
         api_key: str | None = None
     ):
         """
-        Initialize Jan client.
+        Initialize LM Studio client.
         
         Args:
-            base_url: Jan server URL. Defaults to config.
+            base_url: LM Studio server URL. Defaults to config.
             model: Model name. Defaults to config.
             timeout: Request timeout in seconds. Defaults to config.
-            api_key: API key for Jan server. Defaults to config.
+            api_key: API key for LM Studio server. Defaults to config.
         """
-        config = settings()["jan"]
+        config = settings()["lm_studio"]
         
         self.base_url = base_url or config["base_url"]
         self.model = model or config["model"]
@@ -50,7 +50,7 @@ class JanClient:
     
     def health_check(self) -> dict[str, Any]:
         """
-        Check if Jan server is running and responsive.
+        Check if LM Studio server is running and responsive.
         
         Returns:
             Dict with status and details.
@@ -70,7 +70,7 @@ class JanClient:
         except APIConnectionError as e:
             return {
                 "status": "error",
-                "error": "Cannot connect to Jan server",
+                "error": "Cannot connect to LM Studio server",
                 "details": str(e),
                 "server_url": self.base_url,
             }
@@ -124,12 +124,12 @@ class JanClient:
         
         except APIConnectionError:
             raise ConnectionError(
-                f"Cannot connect to Jan server at {self.base_url}. "
-                "Please ensure Jan is running and the Local API Server is started."
+                f"Cannot connect to LM Studio server at {self.base_url}. "
+                "Please ensure LM Studio is running and the server is accessible."
             )
         except APITimeoutError:
             raise TimeoutError(
-                f"Request to Jan server timed out after {self.timeout}s. "
+                f"Request to LM Studio server timed out after {self.timeout}s. "
                 "The model may be loading or the request may be too large."
             )
     
@@ -174,39 +174,47 @@ class JanClient:
         
         except APIConnectionError:
             raise ConnectionError(
-                f"Cannot connect to Jan server at {self.base_url}. "
-                "Please ensure Jan is running and the Local API Server is started."
+                f"Cannot connect to LM Studio server at {self.base_url}. "
+                "Please ensure LM Studio is running and the server is accessible."
             )
 
 
 # Global client instance (lazy loaded)
-_client: JanClient | None = None
+_client: LMStudioClient | None = None
 
 
-def get_jan_client() -> JanClient:
-    """Get cached Jan client instance."""
+def get_lm_studio_client(model: str | None = None) -> LMStudioClient:
+    """Get LM Studio client instance. Creates new instance if model is specified."""
     global _client
+    if model is not None:
+        # Create new client with specified model
+        return LMStudioClient(model=model)
     if _client is None:
-        _client = JanClient()
+        _client = LMStudioClient()
     return _client
 
 
-def check_jan_server() -> dict[str, Any]:
+def check_lm_studio_server() -> dict[str, Any]:
     """Quick health check function."""
-    client = get_jan_client()
+    client = get_lm_studio_client()
     return client.health_check()
+
+
+# Legacy aliases for backward compatibility
+get_jan_client = get_lm_studio_client
+check_jan_server = check_lm_studio_server
 
 
 if __name__ == "__main__":
     # Quick test
-    print("Checking Jan server connection...")
-    status = check_jan_server()
+    print("Checking LM Studio server connection...")
+    status = check_lm_studio_server()
     
     for key, value in status.items():
         print(f"  {key}: {value}")
     
     if status["status"] == "healthy":
         print("\nTesting generation...")
-        client = get_jan_client()
+        client = get_lm_studio_client()
         response = client.generate("Say hello in one sentence.")
         print(f"Response: {response}")

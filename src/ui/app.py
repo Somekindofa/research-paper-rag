@@ -13,7 +13,7 @@ from src.processing.duplicates import ChecksumStore
 from src.retrieval.vectorstore import get_vector_store
 from src.retrieval.embeddings import embed_documents
 from src.graph.graph import RAGPipeline
-from src.integrations.jan_client import check_jan_server
+from src.integrations.lm_studio_client import check_jan_server
 
 
 # ============================================================================

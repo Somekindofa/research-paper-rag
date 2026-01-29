@@ -32,12 +32,16 @@ def get_settings() -> dict[str, Any]:
     """Load and merge settings from YAML and environment variables."""
     settings = load_yaml_config("settings.yaml")
     
-    # Override with environment variables if set
-    if os.getenv("JAN_BASE_URL"):
-        settings["jan"]["base_url"] = os.getenv("JAN_BASE_URL")
+    # Override with environment variables if set (support both LM_STUDIO_ and JAN_ prefixes)
+    lm_studio_url = os.getenv("LM_STUDIO_BASE_URL") or os.getenv("JAN_BASE_URL")
+    if lm_studio_url:
+        settings["lm_studio"]["base_url"] = lm_studio_url
+        settings["jan"]["base_url"] = lm_studio_url  # Keep backward compatibility
     
-    if os.getenv("JAN_API_KEY"):
-        settings["jan"]["api_key"] = os.getenv("JAN_API_KEY")
+    lm_studio_key = os.getenv("LM_STUDIO_API_KEY") or os.getenv("JAN_API_KEY")
+    if lm_studio_key:
+        settings["lm_studio"]["api_key"] = lm_studio_key
+        settings["jan"]["api_key"] = lm_studio_key  # Keep backward compatibility
     
     if os.getenv("PDF_FOLDER_PATH"):
         settings["pdf"]["folder_path"] = os.getenv("PDF_FOLDER_PATH")

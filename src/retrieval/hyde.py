@@ -3,7 +3,7 @@ HyDE - Hypothetical Document Embeddings.
 Generates a hypothetical answer to improve retrieval.
 """
 from src.config import prompts
-from src.integrations.jan_client import get_jan_client
+from src.integrations.lm_studio_client import get_jan_client
 from src.retrieval.embeddings import embed_query
 
 

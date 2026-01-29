@@ -6,7 +6,7 @@ from typing import Any
 
 from src.config import prompts
 from src.graph.state import GraphState
-from src.integrations.jan_client import get_jan_client
+from src.integrations.lm_studio_client import get_jan_client
 from src.retrieval.hyde import generate_hypothetical_document
 from src.retrieval.embeddings import get_embedding_model
 from src.retrieval.vectorstore import get_vector_store
