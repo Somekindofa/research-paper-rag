@@ -82,8 +82,10 @@ def retrieve_node(state: GraphState) -> GraphState:
     
     Uses the HyDE embedding (or direct query embedding) to find
     diverse, relevant documents from the vector store.
+    Uses num_docs from state if provided.
     """
     embedding = state.get("query_embedding")
+    num_docs = state.get("num_docs", None)  # Get from state if available
     
     if not embedding:
         return {**state, "error": "No embedding for retrieval"}
@@ -99,8 +101,8 @@ def retrieve_node(state: GraphState) -> GraphState:
                 "error": "No documents in vector store. Please add PDFs first.",
             }
         
-        # MMR search for diverse results
-        results = store.mmr_search(query_embedding=embedding)
+        # MMR search for diverse results, using custom k if provided
+        results = store.mmr_search(query_embedding=embedding, k=num_docs)
         
         if not results:
             return {
@@ -144,9 +146,11 @@ def generate_node(state: GraphState) -> GraphState:
     
     Synthesizes an answer from the ranked documents,
     including proper academic citations.
+    Uses selected_model from state if provided.
     """
     docs = state.get("ranked_docs", [])
     query = state.get("processed_query", state.get("query", ""))
+    selected_model = state.get("selected_model", None)
     
     if not docs:
         error = state.get("error") or "No documents available for answer generation."
@@ -195,7 +199,7 @@ def generate_node(state: GraphState) -> GraphState:
             )
             formatted_sources.append(source_text)
             
-            # Store source info for UI
+            # Store source info for UI (including new metadata fields)
             source_info.append({
                 "index": i + 1,
                 "title": metadata.get("title", "Unknown"),
@@ -205,6 +209,14 @@ def generate_node(state: GraphState) -> GraphState:
                 "score": doc.get("rerank_score", doc.get("score", 0)),
                 "page": metadata.get("page_number"),
                 "filename": metadata.get("filename", ""),
+                "metadata": {
+                    "summary": metadata.get("summary"),
+                    "gap": metadata.get("gap"),
+                    "methodology": metadata.get("methodology"),
+                    "results": metadata.get("results"),
+                    "discussion": metadata.get("discussion"),
+                    "conclusion": metadata.get("conclusion"),
+                }
             })
         
         # Generate answer
@@ -214,7 +226,9 @@ def generate_node(state: GraphState) -> GraphState:
             sources="\n".join(formatted_sources),
         )
         
-        client = get_jan_client()
+        # Use selected model if provided
+        from src.integrations.lm_studio_client import get_lm_studio_client
+        client = get_lm_studio_client(model=selected_model)
         answer = client.generate(
             prompt=prompt,
             temperature=0.3,  # Lower temperature for factual synthesis
@@ -231,7 +245,7 @@ def generate_node(state: GraphState) -> GraphState:
     except ConnectionError as e:
         return {
             **state,
-            "answer": "I couldn't generate an answer because the LLM server is not available. Please ensure Jan is running.",
+            "answer": "I couldn't generate an answer because the LLM server is not available. Please ensure LM Studio is running.",
             "sources": [],
             "error": str(e),
         }

@@ -58,17 +58,31 @@ class RAGPipeline:
         """Initialize the RAG pipeline."""
         self.graph = create_rag_graph()
     
-    def invoke(self, query: str) -> dict[str, Any]:
+    def invoke(self, query: str, num_docs: int = None, relevance_threshold: float = None, selected_model: str = None) -> dict[str, Any]:
         """
         Run the full RAG pipeline.
         
         Args:
             query: User's research question.
+            num_docs: Number of documents to retrieve (optional).
+            relevance_threshold: Minimum relevance score (optional).
+            selected_model: LLM model to use (optional).
         
         Returns:
             Final state with answer and sources.
         """
-        initial_state: GraphState = {"query": query}
+        initial_state: GraphState = {
+            "query": query,
+        }
+        
+        # Add optional parameters to state
+        if num_docs is not None:
+            initial_state["num_docs"] = num_docs
+        if relevance_threshold is not None:
+            initial_state["relevance_threshold"] = relevance_threshold
+        if selected_model is not None:
+            initial_state["selected_model"] = selected_model
+        
         result = self.graph.invoke(initial_state)
         return result
     

@@ -19,6 +19,9 @@ class GraphState(TypedDict, total=False):
         answer: Generated answer text
         sources: Formatted source citations
         error: Error message if something failed
+        num_docs: Number of documents to retrieve (user setting)
+        relevance_threshold: Minimum relevance score (user setting)
+        selected_model: LLM model to use (user setting)
     """
     # Input
     query: str
@@ -38,3 +41,8 @@ class GraphState(TypedDict, total=False):
     
     # Control
     error: str | None
+    
+    # User settings
+    num_docs: int
+    relevance_threshold: float
+    selected_model: str
