@@ -316,8 +316,15 @@ async def run_indexing_background():
 
 async def generate_document_metadata(docs) -> int:
     """Generate LLM-based metadata for documents."""
+    from src.config import prompts
+    
     count = 0
     loop = asyncio.get_event_loop()
+    prompt_template = prompts().get("metadata_extraction", {}).get("template", "")
+    
+    if not prompt_template:
+        print("Warning: No metadata_extraction prompt template found")
+        return 0
     
     for doc in docs:
         try:
@@ -327,26 +334,13 @@ async def generate_document_metadata(docs) -> int:
             
             # Extract first 2000 characters for context
             text_sample = doc.text[:2000] if hasattr(doc, 'text') else ""
+            title = doc.metadata.get('title', 'Unknown') if hasattr(doc, 'metadata') else 'Unknown'
             
             # Generate metadata using LLM
-            metadata_prompt = f"""
-            Analyze this research paper excerpt and provide concise metadata:
-            
-            Title: {doc.metadata.get('title', 'Unknown')}
-            
-            Excerpt:
-            {text_sample}
-            
-            Please provide (each in 1-2 sentences):
-            1. Summary: Brief overview of the paper
-            2. Gap: Research gap or problem addressed
-            3. Methodology: Research methods used
-            4. Results: Key findings
-            5. Discussion: Main interpretations
-            6. Conclusion: Main takeaways
-            
-            Format as JSON with keys: summary, gap, methodology, results, discussion, conclusion
-            """
+            metadata_prompt = prompt_template.format(
+                title=title,
+                text_sample=text_sample
+            )
             
             # Generate in thread pool
             response = await loop.run_in_executor(
@@ -360,11 +354,20 @@ async def generate_document_metadata(docs) -> int:
             
             # Parse and store metadata
             try:
-                metadata = json.loads(response)
-                # Update document metadata
-                if hasattr(doc, 'metadata'):
-                    doc.metadata.update(metadata)
-                count += 1
+                # Try to extract JSON from response
+                import re
+                json_match = re.search(r'\{.*\}', response, re.DOTALL)
+                if json_match:
+                    metadata = json.loads(json_match.group())
+                    # Update document metadata
+                    if hasattr(doc, 'metadata'):
+                        doc.metadata.update(metadata)
+                    count += 1
+                else:
+                    # Fallback: store raw response
+                    if hasattr(doc, 'metadata'):
+                        doc.metadata['llm_analysis'] = response
+                    count += 1
             except json.JSONDecodeError:
                 # Fallback: store raw response
                 if hasattr(doc, 'metadata'):

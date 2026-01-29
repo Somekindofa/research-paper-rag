@@ -1,46 +1,62 @@
 # Research RAG System
 
-A local, privacy-focused Retrieval-Augmented Generation system for research papers.
+A powerful, privacy-focused Retrieval-Augmented Generation system for PhD research with 100+ papers.
 
-## Features
+## ✨ Features
 
 - 🔍 **HyDE-Enhanced Retrieval**: Hypothetical Document Embeddings for better semantic search
 - 📊 **MMR Diversification**: Get diverse, non-redundant results
 - 🔄 **Cross-Encoder Reranking**: Precision-focused result refinement
 - 📝 **Cited Answers**: Every claim grounded in your papers with proper citations
-- 🖥️ **100% Local**: Your papers and queries never leave your machine
-- 🚀 **GPU Accelerated**: Fast embeddings and inference on your RTX Ada 5000
+- 🤖 **Model Selection**: Choose from multiple LLM models via UI dropdown
+- 🎛️ **User Controls**: Adjust document count (1-20) and relevance threshold (50-100%)
+- 📚 **LLM-Generated Metadata**: Automatic extraction of summary, gap, methodology, results, discussions, and conclusions
+- ⚡ **Background Indexing**: Non-blocking PDF processing with real-time progress
+- 🖥️ **100% Local**: Your papers and queries never leave your machine (via remote LM Studio)
+- 🚀 **GPU Accelerated**: Fast embeddings on your GPU
+- 🎨 **Professional UI**: Clean, modern interface designed for PhD research
 
 ## Quick Start
 
 ### 1. Install Dependencies
 
-```powershell
-cd c:\Users\romaric\Documents\research_RAG
+```bash
 pip install -r requirements.txt
 ```
 
-### 2. Set Up Jan LLM Server
+### 2. Set Up LM Studio Server
 
-Follow [docs/jan_setup.md](docs/jan_setup.md) to install and configure Jan with Llama 3.3 8B.
+This system uses **LM Studio** (not Jan) running on a remote workstation accessible via Tailscale:
 
-### 3. Configure Your PDF Folder
+1. Install LM Studio on your workstation
+2. Load your preferred model (e.g., 30B parameter model)
+3. Enable the server in LM Studio settings
+4. Ensure it's accessible via Tailscale network
+
+### 3. Configure Your Environment
 
 Copy the example environment file:
 
-```powershell
-copy .env.example .env
+```bash
+cp .env.example .env
 ```
 
-Edit `.env` and set your PDF folder path:
+Edit `.env` and configure:
 
-```
-PDF_FOLDER_PATH=C:/path/to/your/zotero/pdfs
+```bash
+# LM Studio server URL (via Tailscale)
+LM_STUDIO_BASE_URL=http://100.0.0.0:1234/v1  # Replace with your Tailscale IP
+
+# Path to your PDF folder (Zotero export or other)
+PDF_FOLDER_PATH=data/pdfs
+
+# Embedding device (cuda for GPU, cpu for CPU)
+EMBEDDING_DEVICE=cuda
 ```
 
 ### 4. Run Diagnostics
 
-```powershell
+```bash
 python -m src.utils.diagnostics
 ```
 
@@ -48,7 +64,7 @@ Ensure all checks pass before proceeding.
 
 ### 5. Start the UI
 
-```powershell
+```bash
 chainlit run src/ui/app.py
 ```
 
@@ -58,38 +74,49 @@ Open `http://localhost:8000` in your browser.
 
 ```
 Query → Preprocess → HyDE Generation → Embed → MMR Retrieval → Rerank → Generate → Answer
+                                                                              ↓
+                                                              LLM-Generated Metadata
 ```
+
+### Pipeline Flow
+
+1. **Query Preprocessing**: Clean and normalize user input
+2. **HyDE Generation**: Create hypothetical document for better retrieval
+3. **Embedding**: Convert to vector representation
+4. **MMR Retrieval**: Find diverse, relevant documents (respects user's document count)
+5. **Reranking**: Precision scoring with cross-encoder
+6. **Filtering**: Apply user's relevance threshold
+7. **Generation**: Synthesize answer with citations (using selected model)
 
 ### Components
 
-- **LangGraph**: Orchestrates the RAG pipeline
-- **Chroma**: Vector storage with persistence
+- **LangGraph**: Orchestrates the RAG pipeline with state management
+- **Chroma**: Vector storage with cosine similarity and persistence
 - **nomic-embed-text-v1.5**: GPU-accelerated embeddings
 - **ms-marco-MiniLM**: Cross-encoder reranking
-- **Jan + Llama 3.3 8B**: Local LLM inference
-- **Chainlit**: Modern chat UI
+- **LM Studio**: Remote LLM inference (30B+ models supported)
+- **Chainlit**: Modern chat UI with settings panel
 
 ## Project Structure
 
 ```
-research_RAG/
+research-paper-rag/
 ├── config/
 │   ├── settings.yaml       # Main configuration
-│   └── prompts.yaml        # Prompt templates
+│   └── prompts.yaml        # Prompt templates (including metadata extraction)
 ├── data/
 │   ├── pdfs/               # Your PDF papers
 │   ├── chroma_db/          # Vector store
 │   └── metadata/           # Checksums, etc.
-├── docs/
-│   └── jan_setup.md        # Jan setup guide
 ├── public/
-│   └── style.css           # UI styling
+│   ├── custom.css          # Professional UI styling
+│   └── custom.js           # UI interaction handlers
 ├── src/
-│   ├── graph/              # LangGraph pipeline
-│   ├── processing/         # PDF ingestion
-│   ├── retrieval/          # Embeddings, search
-│   ├── integrations/       # Jan client
-│   ├── ui/                 # Chainlit app
+│   ├── graph/              # LangGraph pipeline with state
+│   ├── processing/         # PDF ingestion with metadata generation
+│   ├── retrieval/          # Embeddings, MMR search, reranking
+│   ├── integrations/       # LM Studio client
+│   ├── ui/                 # Enhanced Chainlit app
 │   └── utils/              # Diagnostics
 ├── .env                    # Your configuration
 ├── chainlit.md             # Welcome message
@@ -102,42 +129,102 @@ research_RAG/
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `jan.model` | llama-3.3-8b-instruct | LLM model name in Jan |
+| `lm_studio.base_url` | http://100.0.0.0:1234/v1 | LM Studio server URL |
+| `lm_studio.model` | local-model | Default model (overridden by UI) |
 | `embeddings.device` | cuda | GPU or CPU for embeddings |
 | `chunking.chunk_size` | 800 | Characters per chunk |
-| `retrieval.k` | 10 | Number of results |
+| `retrieval.k` | 5 | Default number of documents |
+| `retrieval.score_threshold` | 0.75 | Default relevance threshold (75%) |
 | `retrieval.lambda_mult` | 0.7 | MMR diversity (0-1) |
 
-### Environment Variables (.env)
+### User Controls (via UI)
 
-```
-JAN_BASE_URL=http://localhost:1337/v1
-PDF_FOLDER_PATH=C:/Users/you/Zotero/storage
-EMBEDDING_DEVICE=cuda
-```
+- **Model Selection**: Dropdown at top left (fetches from LM Studio)
+- **Number of Documents**: Slider 1-20 (default 5)
+- **Relevance Threshold**: Slider 50-100% (default 75%)
+
+These settings are per-session and don't modify config files.
 
 ## Adding New Papers
 
-1. Add PDFs to your configured folder (or subfolders)
-2. Restart the Chainlit UI
-3. Click "Index Now" when prompted
-4. Papers are automatically chunked, embedded, and indexed
+1. Add PDFs to your configured folder (or subfolders, up to 2 levels deep)
+2. Restart the Chainlit UI or refresh the chat
+3. Click "✅ Index Now" when prompted
+4. Papers are automatically:
+   - Parsed and chunked (800 chars with 140 overlap)
+   - Embedded with nomic-embed-text-v1.5
+   - Analyzed by LLM for metadata extraction
+   - Added to vector store
+
+### Background Indexing
+
+- Indexing runs in a background task
+- Progress indicator shows at top of screen
+- You can **still query existing documents** while indexing
+- Metadata generation may take time (LLM analyzes each paper)
+
+### Metadata Fields
+
+For each document, the LLM generates:
+- **Summary**: Brief overview of the paper
+- **Gap**: Research gap or problem addressed
+- **Methodology**: Research methods used
+- **Results**: Key findings
+- **Discussion**: Main interpretations
+- **Conclusion**: Main takeaways
+
+This metadata is stored in the vector store and displayed in search results.
+
+## Example Queries
+
+The system is designed for PhD research workflows:
+
+### Literature Review
+> "Some paper described a method to calibrate the vibration profile of a DIY drone, recall which one it was and summarize the method step by step."
+
+### Citation Checking
+> "Here are 30 papers in my bibliography in my ongoing article named 'my article' in the lot, please review if they were correctly cited at the right passage in my article or if they don't really correlate to what I'm saying"
+
+### Current Research Discovery
+> "I want you to search the latest preprints on Arxiv's website that relate to SLAM in constraint hardware. What are the advancements from 2023 to 2025?"
 
 ## Troubleshooting
 
-### Jan Connection Issues
-- Ensure Jan is running
-- Check Local API Server is enabled (port 1337)
-- Verify with: `curl http://localhost:1337/v1/models`
+### LM Studio Connection Issues
+- Ensure LM Studio is running on the workstation
+- Verify server is enabled in LM Studio settings
+- Check Tailscale connection: `ping 100.0.0.0` (replace with your IP)
+- Test endpoint: `curl http://100.0.0.0:1234/v1/models`
+
+### No Models Available
+- Load a model in LM Studio UI
+- Refresh the Chainlit page
+- Model dropdown will auto-populate
 
 ### GPU/CUDA Issues
 - Set `EMBEDDING_DEVICE=cpu` in `.env` to use CPU
-- Ensure CUDA toolkit matches PyTorch version
-- Check GPU memory with: `nvidia-smi`
+- Check GPU availability: `python -c "import torch; print(torch.cuda.is_available())"`
+- Verify CUDA toolkit matches PyTorch version
 
-### Slow Indexing
-- Normal: ~2-5 seconds per PDF
+### Indexing Taking Long Time
+- Normal: ~5-10 seconds per PDF (with metadata generation)
+- Metadata extraction requires LLM calls (can be slow for 100+ papers)
+- Progress indicator shows real-time status
 - GPU embeddings are much faster than CPU
+
+### Low Quality Answers
+- Increase **Number of Documents** slider (more context)
+- Lower **Relevance Threshold** (include more sources)
+- Try different models via model selector
+- Check if your papers are indexed: see Library Status
+
+## API Endpoints (LM Studio)
+
+The system uses OpenAI-compatible endpoints from LM Studio:
+- `/v1/models` - List available models
+- `/v1/chat/completions` - Generate responses
+
+See [LM Studio API docs](https://lmstudio.ai/docs/developer/rest/endpoints) for details.
 
 ## License
 

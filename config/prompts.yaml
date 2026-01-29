@@ -48,3 +48,23 @@ preprocess:
     Original: {query}
     
     Improved query:
+
+# Metadata Extraction Prompt
+metadata_extraction:
+  template: |
+    Analyze this research paper excerpt and provide concise metadata in JSON format.
+    
+    Title: {title}
+    
+    Excerpt:
+    {text_sample}
+    
+    Provide the following metadata (each in 1-2 sentences):
+    1. summary: Brief overview of the paper
+    2. gap: Research gap or problem addressed
+    3. methodology: Research methods used
+    4. results: Key findings
+    5. discussion: Main interpretations
+    6. conclusion: Main takeaways
+    
+    Return ONLY valid JSON with these keys: summary, gap, methodology, results, discussion, conclusion
