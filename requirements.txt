@@ -20,8 +20,8 @@ pymupdf>=1.24.0  # Also known as fitz
 # Reranking
 # Note: sentence-transformers includes CrossEncoder
 
-# UI
-chainlit>=1.0.0
+# UI - Gradio for better customizability
+gradio>=4.0.0
 
 # Configuration
 python-dotenv>=1.0.0
@@ -31,5 +31,5 @@ pyyaml>=6.0
 numpy>=1.24.0
 pydantic>=2.0.0
 
-# OpenAI SDK (for Jan compatibility)
+# OpenAI SDK (for LM Studio compatibility)
 openai>=1.0.0

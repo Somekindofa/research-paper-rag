@@ -28,8 +28,14 @@ data/chroma_db/
 # Metadata (checksums, regenerated on indexing)
 data/metadata/checksums.json
 
-# Chainlit temporary files
+# Chainlit temporary files (legacy)
 .files/
+.chainlit/
+chainlit.md
+
+# Gradio cache
+gradio_cached_examples/
+flagged/
 
 # Keep folder structure but not content
 !data/pdfs/.gitkeep
