@@ -28,14 +28,16 @@ data/chroma_db/
 # Metadata (checksums, regenerated on indexing)
 data/metadata/checksums.json
 
-# Chainlit temporary files (legacy)
-.files/
-.chainlit/
-chainlit.md
-
-# Gradio cache
-gradio_cached_examples/
-flagged/
+# React frontend
+frontend/node_modules/
+frontend/build/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
 
 # Keep folder structure but not content
 !data/pdfs/.gitkeep
