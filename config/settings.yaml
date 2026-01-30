@@ -1,14 +1,23 @@
 # Research RAG System Configuration
 # ===================================
 
-# Jan LLM Server Configuration
-jan:
-  base_url: "http://10.201.20.44:1234/v1"
-  api_key: "not-needed"  # Override in .env if Jan requires API key
-  model: "openai/gpt-oss-20b"  # Must match Jan's loaded model name
+# LM Studio Server Configuration (Remote via Tailscale)
+lm_studio:
+  base_url: "http://100.0.0.0:1234/v1"  # Placeholder - update with actual Tailscale IP
+  api_key: "not-needed"  # Override in .env if LM Studio requires API key
+  model: "local-model"  # Default model - will be overridden by user selection
   temperature: 0.7
   max_tokens: 2048
   timeout: 120  # seconds
+
+# Legacy Jan configuration (for backward compatibility)
+jan:
+  base_url: "http://100.0.0.0:1234/v1"
+  api_key: "not-needed"
+  model: "local-model"
+  temperature: 0.7
+  max_tokens: 2048
+  timeout: 120
 
 # Embedding Model Configuration
 embeddings:
@@ -39,9 +48,10 @@ chunking:
 
 # Retrieval Configuration (MMR)
 retrieval:
-  k: 10  # Final number of documents to return
+  k: 5  # Default number of documents to return (user configurable)
   fetch_k: 20  # Initial pool for MMR diversity
   lambda_mult: 0.7  # 0=max diversity, 1=max relevance
+  score_threshold: 0.75  # Default relevance threshold (user configurable)
 
 # Reranker Configuration
 reranker:

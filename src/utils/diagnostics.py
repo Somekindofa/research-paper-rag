@@ -70,9 +70,9 @@ def test_gpu() -> dict:
 
 
 def test_jan_server() -> dict:
-    """Test Jan LLM server connection."""
+    """Test LM Studio server connection."""
     try:
-        from src.integrations.jan_client import check_jan_server
+        from src.integrations.lm_studio_client import check_jan_server
         return check_jan_server()
     except Exception as e:
         return {"status": "error", "error": str(e)}

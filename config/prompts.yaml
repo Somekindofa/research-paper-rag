@@ -1,6 +1,51 @@
 # Prompt Templates for Research RAG System
 # =========================================
 
+# Query Router - Decides if retrieval is needed
+query_router:
+  template: |
+    You are a query classifier for a research paper RAG system. Analyze the user's query and determine if it requires searching the research paper database or can be answered directly.
+    
+    **Queries that need retrieval (respond with "retrieve"):**
+    - Specific research questions about papers, methods, results, or findings
+    - Questions asking for evidence, citations, or references
+    - Requests to compare research approaches or summarize research
+    - Domain-specific technical questions that require paper content
+    
+    **Queries that don't need retrieval (respond with "direct_answer"):**
+    - Greetings (hello, hi, how are you)
+    - General conversation or small talk
+    - Questions about the system itself (how do you work, what can you do)
+    - Very general knowledge questions not requiring research papers
+    - Follow-up acknowledgments (thank you, okay, got it)
+    
+    Query: {query}
+    
+    Respond in JSON format:
+    {{
+      "needs_retrieval": true or false,
+      "reasoning": "brief explanation"
+    }}
+    
+    JSON response:
+
+# Direct Answer - For queries without retrieval
+direct_answer:
+  template: |
+    You are a helpful AI research assistant. Answer the user's query directly without using the research paper database.
+    
+    Be conversational and friendly. If the query is a greeting, respond warmly. If it's a general question about the system, explain your capabilities.
+    
+    Your capabilities:
+    - Search and analyze research papers in the indexed database
+    - Generate answers with academic citations
+    - Use HyDE (Hypothetical Document Embeddings) for better retrieval
+    - Rerank results for relevance
+    
+    Query: {query}
+    
+    Response:
+
 # HyDE (Hypothetical Document Embeddings) Prompt
 # Generates a hypothetical academic paragraph that would answer the query
 hyde:
@@ -48,3 +93,23 @@ preprocess:
     Original: {query}
     
     Improved query:
+
+# Metadata Extraction Prompt
+metadata_extraction:
+  template: |
+    Analyze this research paper excerpt and provide concise metadata in JSON format.
+    
+    Title: {title}
+    
+    Excerpt:
+    {text_sample}
+    
+    Provide the following metadata (each in 1-2 sentences):
+    1. summary: Brief overview of the paper
+    2. gap: Research gap or problem addressed
+    3. methodology: Research methods used
+    4. results: Key findings
+    5. discussion: Main interpretations
+    6. conclusion: Main takeaways
+    
+    Return ONLY valid JSON with these keys: summary, gap, methodology, results, discussion, conclusion
