@@ -10,11 +10,12 @@ A powerful, privacy-focused Retrieval-Augmented Generation system for PhD resear
 - 📝 **Cited Answers**: Every claim grounded in your papers with proper citations
 - 🤖 **Model Selection**: Choose from multiple LLM models via UI dropdown
 - 🎛️ **User Controls**: Adjust document count (1-20) and relevance threshold (50-100%)
+- 🔘 **Force Retrieval Toggle**: Choose between simple LLM chat or full RAG mode
 - 📚 **LLM-Generated Metadata**: Automatic extraction of summary, gap, methodology, results, discussions, and conclusions
 - ⚡ **Background Indexing**: Non-blocking PDF processing with real-time progress
 - 🖥️ **100% Local**: Your papers and queries never leave your machine (via remote LM Studio)
 - 🚀 **GPU Accelerated**: Fast embeddings on your GPU
-- 🎨 **Professional UI**: Clean, modern interface designed for PhD research
+- 🎨 **Modern Gradio UI**: Clean, customizable interface designed for PhD research
 
 ## Quick Start
 
@@ -64,19 +65,58 @@ Ensure all checks pass before proceeding.
 
 ### 5. Start the UI
 
+**New Gradio UI (Recommended):**
+```bash
+python src/ui/gradio_app.py
+```
+
+Open `http://localhost:7860` in your browser.
+
+**Legacy Chainlit UI:**
 ```bash
 chainlit run src/ui/app.py
 ```
 
 Open `http://localhost:8000` in your browser.
 
+## Gradio UI - Force Retrieval Toggle
+
+The new Gradio interface features a prominent **Force Retrieval** toggle that lets you choose between two modes:
+
+### Mode 1: Force Retrieval OFF (Simple LLM)
+- Direct conversation with the LLM
+- Fast response time (~2-5 seconds)
+- No document search
+- No citations
+- **Use for:** General questions, definitions, quick answers
+
+### Mode 2: Force Retrieval ON (Full RAG)
+- Complete RAG pipeline with document retrieval
+- Searches your research library
+- Provides cited answers
+- Shows source documents with metadata
+- Response time: ~5-15 seconds
+- **Use for:** Research questions, literature review, finding papers
+
+Simply toggle the checkbox at the top of the chat to switch between modes!
+
 ## Architecture
 
+The system now supports two modes via the Force Retrieval toggle:
+
+### Simple LLM Mode (Force Retrieval OFF)
+```
+User Query → LM Studio Client → Direct Response
+```
+Fast and conversational, no document search.
+
+### Full RAG Mode (Force Retrieval ON)
 ```
 Query → Preprocess → HyDE Generation → Embed → MMR Retrieval → Rerank → Generate → Answer
                                                                               ↓
                                                               LLM-Generated Metadata
 ```
+Complete pipeline with document retrieval and citations.
 
 ### Pipeline Flow
 
@@ -95,7 +135,7 @@ Query → Preprocess → HyDE Generation → Embed → MMR Retrieval → Rerank 
 - **nomic-embed-text-v1.5**: GPU-accelerated embeddings
 - **ms-marco-MiniLM**: Cross-encoder reranking
 - **LM Studio**: Remote LLM inference (30B+ models supported)
-- **Chainlit**: Modern chat UI with settings panel
+- **Gradio**: Modern, customizable web UI with Force Retrieval toggle
 
 ## Project Structure
 
@@ -116,7 +156,9 @@ research-paper-rag/
 │   ├── processing/         # PDF ingestion with metadata generation
 │   ├── retrieval/          # Embeddings, MMR search, reranking
 │   ├── integrations/       # LM Studio client
-│   ├── ui/                 # Enhanced Chainlit app
+│   ├── ui/
+│   │   ├── gradio_app.py   # New Gradio UI with Force Retrieval
+│   │   └── app.py          # Legacy Chainlit UI
 │   └── utils/              # Diagnostics
 ├── .env                    # Your configuration
 ├── chainlit.md             # Welcome message
